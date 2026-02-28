@@ -1,5 +1,5 @@
 from sqlalchemy import Table, Column, Integer, String, MetaData, Date, CheckConstraint, ForeignKey, text, cast, DateTime
-from src.database import Base
+from database import Base
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import and_
 from enum import Enum

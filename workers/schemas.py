@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, model_validator
-from src.models import Workload
+from models import Workload
 from typing import Self
 
 class WorkerPostSchema(BaseModel):
@@ -15,9 +15,3 @@ class WorkerPatchSchema(BaseModel):
         if not self.model_dump(exclude_unset=True):
             raise ValueError("Хотя бы одно значение должно меняться обязательно")
         return self
-
-class ResumePostSchema(BaseModel):
-    title : str = Field(max_length=256)
-    salary : str | None
-    workload : Workload
-    worker_id : int

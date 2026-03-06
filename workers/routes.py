@@ -27,7 +27,7 @@ async def post_worker(data: WorkerPostSchema, session: SessionDep):
 
 @router.delete("/{worker_id}", summary="Удалить работника из БД")
 async def delete_worker(worker_id: WorkerID, session: SessionDep):
-    await WorkersProcessor.delete_worker_from_db(id, session)
+    await WorkersProcessor.delete_worker_from_db(worker_id, session)
     return {"success": True}
 
 
@@ -36,7 +36,7 @@ async def update_worker(
     worker_id: WorkerID, new_data: WorkerPatchSchema, session: SessionDep
 ):
     changed_rows = await WorkersProcessor.patch_worker_from_db(
-        id, new_data.model_dump(exclude_unset=True), session
+        worker_id, new_data.model_dump(exclude_unset=True), session
     )
     return {"success": True, "changed_rows": changed_rows}
 

@@ -9,9 +9,10 @@ from core.database import db_context
 async def lifespan(app: FastAPI):
     await db_context.create_tables()
     yield
+    print("Работа процесса завершена")
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan)  # lifespan=lifespan
 app.include_router(workers_router)
 
 

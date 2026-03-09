@@ -2,13 +2,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, Sequence
 from core.models.resume import Resume
 from resumes.schemas import ResumePostSchema
+from sqlalchemy.orm import joinedload
 
 
 class ResumeProcessor:
 
     @staticmethod
     async def get_resumes_from_db(session: AsyncSession) -> Sequence[Resume]:
-        query = select(Resume)
+        query = select(Resume).options(joinedload(Resume.worker))
         result = await session.execute(query)
         return result.scalars().all()
 

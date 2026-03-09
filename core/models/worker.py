@@ -22,7 +22,6 @@ from typing import List
 
 
 class Worker(Base):
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     username: Mapped[str] = mapped_column(nullable=False)
     registration_date: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

@@ -2,8 +2,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, HTTPException, status, Path
 from .crud import WorkersProcessor
 from core.dependencies import SessionDep
-from workers.schemas import WorkerGetSchema, WorkerPatchSchema, WorkerPostSchema
-from typing import Annotated
+from workers.schemas import (
+    WorkerGetSchemaWithResume,
+    WorkerPatchSchema,
+    WorkerPostSchema,
+    WorkerGetSchema,
+)
+from resumes.schemas import ResumeGetSchema  # положил класс в globals
+from typing import Annotated, List
+
+WorkerGetSchemaWithResume.model_rebuild()  # заребилдил модель, чтобы строковая аннотация превратилась в класс
 
 router = APIRouter(prefix="/workers", tags=["Работники"])
 WorkerID = Annotated[int, Path(gt=0)]
@@ -12,7 +20,9 @@ WorkerID = Annotated[int, Path(gt=0)]
 
 
 @router.get(
-    "/", response_model=list[WorkerGetSchema], summary="Получить всех работников из БД"
+    "/",
+    response_model=List[WorkerGetSchemaWithResume],
+    summary="Получить всех работников из БД",
 )
 async def get_workers(session: SessionDep):
     result = await WorkersProcessor.get_workers_from_db(session)
@@ -43,7 +53,7 @@ async def update_worker(
 
 @router.get(
     "/{worker_id}",
-    response_model=WorkerGetSchema | dict,
+    response_model=WorkerGetSchemaWithResume | dict,
     summary="Получить конкретного работника из БД",
 )
 async def get_concrete_worker(worker_id: int, session: SessionDep):

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, model_validator
 from typing import Self
 from core.utils import City, Specialization, Status
-from pydantic import ConfigDict
+from typing import List
 
 
 class WorkerBase(BaseModel):
@@ -27,3 +27,7 @@ class WorkerPatchSchema(WorkerBase):
 
 class WorkerGetSchema(WorkerBase):
     id: int
+
+
+class WorkerGetSchemaWithResume(WorkerGetSchema):
+    resume: List["ResumeGetSchema"]

@@ -1,4 +1,5 @@
 from enum import Enum
+from urllib.parse import urlparse
 
 
 class City(str, Enum):
@@ -93,7 +94,7 @@ class Specialization(str, Enum):
     OTHER = "Другое"
 
 
-class Education:
+class Education(str, Enum):
     SECONDARY = "Среднее"
     SECONDARY_SPECIALIZATED = "Среднее профессиональное"
     INCOMPLETE_HIGHER = "Незаконченное высшее"

@@ -1,4 +1,5 @@
 from sqlalchemy import text, insert, values, select, delete, update, Sequence
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from .schemas import WorkerPostSchema, WorkerPatchSchema
 from core.models.worker import Worker
@@ -18,9 +19,9 @@ class WorkersProcessor:
 
     @staticmethod
     async def get_workers_from_db(session: AsyncSession) -> Sequence[Worker]:
-        query = select(Worker)
+        query = select(Worker).options(joinedload(Worker.resume))
         result = await session.execute(query)
-        return result.scalars().all()
+        return result.unique().scalars().all()
 
     @staticmethod
     async def delete_worker_from_db(id: int, session: AsyncSession) -> None:

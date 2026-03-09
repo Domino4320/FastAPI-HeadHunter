@@ -1,7 +1,8 @@
-from pydantic import Field, HttpUrl, AfterValidator
+from pydantic import Field, HttpUrl, AfterValidator, model_validator
 from core.utils import Education
-from typing import Annotated
+from typing import Annotated, Self
 from pydantic import BaseModel, PlainSerializer
+from core.utils import check_changes_availability as utils_check
 
 
 def validate_porfolio_url(url: HttpUrl) -> HttpUrl:
@@ -15,7 +16,6 @@ def serialize_url(url: HttpUrl) -> str:
 
 
 class ResumeBase(BaseModel):
-    worker_id: int = Field(ge=1)
     about_me: str = Field(max_length=1000)
     experience_years: int = Field(ge=0)
     salary_expectations: int = Field(ge=1000)
@@ -26,15 +26,26 @@ class ResumeBase(BaseModel):
     extra_info: str = Field(max_length=500)
 
 
-class ResumeGetSchema(ResumeBase):
+class ResumeSchemaWithWorkerId(ResumeBase):
+    worker_id: int = Field(ge=1)
+
+
+class ResumeGetSchema(ResumeSchemaWithWorkerId):
     id: int
 
 
-class ResumeGetSchemaWithWorker(ResumeGetSchema):
+class ResumeGetSchemaWithWorker(ResumeSchemaWithWorkerId):
     worker: "WorkerGetSchema"
 
 
-class ResumePostSchema(ResumeBase):
+class ResumePostSchema(ResumeSchemaWithWorkerId):
     portfolio_url: Annotated[
         HttpUrl, AfterValidator(validate_porfolio_url), PlainSerializer(serialize_url)
     ]
+
+
+class ResumePatchSchema(ResumeBase):
+
+    @model_validator(mode="after")
+    def check_changes_availability(self) -> Self:
+        utils_check()

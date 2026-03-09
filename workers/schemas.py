@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field, model_validator
 from typing import Self
 from core.utils import City, Specialization, Status
 from typing import List
+from core.utils import check_changes_availability as utils_check
 
 
 class WorkerBase(BaseModel):
@@ -20,9 +21,7 @@ class WorkerPatchSchema(WorkerBase):
 
     @model_validator(mode="after")
     def check_changes_availability(self) -> Self:
-        if not self.model_dump(exclude_unset=True):
-            raise ValueError("Хотя бы одно значение должно меняться обязательно")
-        return self
+        utils_check()
 
 
 class WorkerGetSchema(WorkerBase):

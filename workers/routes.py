@@ -46,7 +46,7 @@ async def update_worker(
     worker_id: WorkerID, new_data: WorkerPatchSchema, session: SessionDep
 ):
     changed_rows = await WorkersProcessor.patch_worker_from_db(
-        worker_id, new_data.model_dump(exclude_unset=True), session
+        worker_id, new_data.model_dump(), session
     )
     return {"success": True, "changed_rows": changed_rows}
 

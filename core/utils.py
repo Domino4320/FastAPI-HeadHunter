@@ -1,5 +1,6 @@
 from enum import Enum
 from urllib.parse import urlparse
+from typing import Self
 
 
 class City(str, Enum):
@@ -102,3 +103,9 @@ class Education(str, Enum):
     MASTER = "Магистратура"
     CANDIDATE_OF_SCIENCES = "Кандидат наук"
     DOCTOR_OF_SCIENCES = "Доктор наук"
+
+
+def check_changes_availability(self) -> Self:
+    if not self.model_dump(exclude_unset=True):
+        raise ValueError("Хотя бы одно значение должно меняться обязательно")
+    return self

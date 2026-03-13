@@ -3,8 +3,10 @@ from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from .schemas import WorkerPostSchema, WorkerPatchSchema
 from core.models.worker import Worker
+from core.models.resume import Resume
 from typing import Any
 from core.database import db_context, Base
+from core.utils import Specialization
 
 
 class WorkersProcessor:
@@ -39,5 +41,22 @@ class WorkersProcessor:
         return result.rowcount
 
     @staticmethod
-    async def get_concrete_worker(worker_id: int, session: AsyncSession) -> Worker:
-        return await session.get(Worker, worker_id)
+    async def get_concrete_worker_from_db(
+        worker_id: int, session: AsyncSession
+    ) -> Worker:
+        result = await session.get(
+            Worker, worker_id, options=(joinedload(Worker.resume),)
+        )
+        return result
+
+    @staticmethod
+    async def get_workers_by_specialization_from_db(
+        session: AsyncSession, specialization: Specialization
+    ) -> Sequence[Worker]:
+        query = (
+            select(Worker)
+            .options(joinedload(Worker.resume))
+            .where(Worker.specialization == specialization)
+        )
+        result = await session.execute(query)
+        return result.unique().scalars().all()

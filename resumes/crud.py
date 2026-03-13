@@ -4,6 +4,7 @@ from core.models.resume import Resume
 from resumes.schemas import ResumePostSchema
 from sqlalchemy.orm import joinedload
 from typing import Any
+from core.utils import Specialization
 
 
 class ResumeProcessor:
@@ -36,3 +37,12 @@ class ResumeProcessor:
         result = await session.execute(query)
         await session.commit()
         return result.rowcount
+
+    @staticmethod
+    async def get_cocrete_resume_from_db(
+        session: AsyncSession, resume_id: int
+    ) -> Resume:
+        result = await session.get(
+            Resume, resume_id, options=(joinedload(Resume.worker),)
+        )
+        return result

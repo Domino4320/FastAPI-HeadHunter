@@ -10,6 +10,7 @@ from workers.schemas import (
 )
 from resumes.schemas import ResumeGetSchema  # положил класс в globals
 from typing import Annotated, List
+from core.utils import Specialization, ResultCheck
 
 WorkerGetSchemaWithResume.model_rebuild()  # заребилдил модель, чтобы строковая аннотация превратилась в класс
 
@@ -24,8 +25,16 @@ WorkerID = Annotated[int, Path(gt=0)]
     response_model=List[WorkerGetSchemaWithResume],
     summary="Получить всех работников из БД",
 )
-async def get_workers(session: SessionDep):
-    result = await WorkersProcessor.get_workers_from_db(session)
+async def get_workers(
+    session: SessionDep, specialization: Specialization | None = None
+):
+    if not specialization:
+        result = await WorkersProcessor.get_workers_from_db(session)
+    else:
+        result = await WorkersProcessor.get_workers_by_specialization_from_db(
+            session, specialization
+        )
+    ResultCheck.check_result(result, "workers wasn`t found")
     return result
 
 
@@ -57,9 +66,9 @@ async def update_worker(
     summary="Получить конкретного работника из БД",
 )
 async def get_concrete_worker(worker_id: int, session: SessionDep):
-    result = await WorkersProcessor.get_concrete_worker(worker_id, session)
-    if result is not None:
-        return result
-    raise HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND, detail="worker wasn't found"
-    )
+    result = await WorkersProcessor.get_concrete_worker_from_db(worker_id, session)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="worker wasn not found"
+        )
+    return result

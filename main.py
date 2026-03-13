@@ -8,7 +8,7 @@ from core.database import db_context
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await db_context.create_tables()
+    print("Работа процесса начата")
     yield
     print("Работа процесса завершена")
 

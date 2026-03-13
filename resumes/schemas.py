@@ -6,9 +6,9 @@ from core.utils import check_changes_availability as utils_check
 
 
 def validate_porfolio_url(url: HttpUrl) -> HttpUrl:
-    if url.host == "hh.ru" or url.host == "linkedin.com":
+    if url.host in ["hh.ru", "linkedin.com", "www.linkedin.com"]:
         return url
-    raise ValueError("Link must contains 'hh.ru' or 'lindein")
+    raise ValueError("Link must contains 'hh.ru' or 'linkedin")
 
 
 def serialize_url(url: HttpUrl) -> str:
@@ -19,7 +19,9 @@ class ResumeBase(BaseModel):
     about_me: str = Field(max_length=1000)
     experience_years: int = Field(ge=0)
     salary_expectations: int = Field(ge=1000)
-    portfolio_url: Annotated[HttpUrl, AfterValidator(validate_porfolio_url)]
+    portfolio_url: Annotated[HttpUrl, AfterValidator(validate_porfolio_url)] | None = (
+        Field(None)
+    )
     education: Education
     education_status: bool
     educational_institute: str = Field(max_length=200)
@@ -39,13 +41,19 @@ class ResumeGetSchemaWithWorker(ResumeSchemaWithWorkerId):
 
 
 class ResumePostSchema(ResumeSchemaWithWorkerId):
-    portfolio_url: Annotated[
-        HttpUrl, AfterValidator(validate_porfolio_url), PlainSerializer(serialize_url)
-    ]
+    portfolio_url: (
+        Annotated[
+            HttpUrl,
+            AfterValidator(validate_porfolio_url),
+            PlainSerializer(serialize_url),
+        ]
+        | None
+    ) = Field(None)
 
 
 class ResumePatchSchema(ResumeBase):
 
     @model_validator(mode="after")
     def check_changes_availability(self) -> Self:
-        utils_check()
+        utils_check(self)
+        return self

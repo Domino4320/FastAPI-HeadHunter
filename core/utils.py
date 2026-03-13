@@ -1,6 +1,7 @@
 from enum import Enum
 from urllib.parse import urlparse
-from typing import Self
+from typing import Self, Any
+from fastapi import HTTPException, status
 
 
 class City(str, Enum):
@@ -105,7 +106,15 @@ class Education(str, Enum):
     DOCTOR_OF_SCIENCES = "Доктор наук"
 
 
-def check_changes_availability(self) -> Self:
-    if not self.model_dump(exclude_unset=True):
+def check_changes_availability(object) -> Any:
+    if not object.model_dump(exclude_unset=True):
         raise ValueError("Хотя бы одно значение должно меняться обязательно")
-    return self
+    return object
+
+
+class ResultCheck:
+
+    @staticmethod
+    def check_result(result: list, detail: str) -> None:
+        if result == []:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)

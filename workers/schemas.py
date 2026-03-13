@@ -21,7 +21,8 @@ class WorkerPatchSchema(WorkerBase):
 
     @model_validator(mode="after")
     def check_changes_availability(self) -> Self:
-        utils_check()
+        utils_check(self)
+        return self
 
 
 class WorkerGetSchema(WorkerBase):

@@ -18,6 +18,10 @@ class Filter(ABC):
         column: Column = getattr(self.model, self.column_name)
         return column
 
+    @abstractmethod
+    def is_nullable(self):
+        pass
+
 
 class RangeFilter(Filter):
     def __init__(self, column_name: str, model: Any, min: int, max: int):
@@ -35,6 +39,10 @@ class RangeFilter(Filter):
             column <= self.max,
         )
 
+    @property
+    def is_nullable(self):
+        return self.min is None and self.max is None
+
 
 class LikeFilter(Filter):
     def __init__(self, column_name, model, value):
@@ -47,6 +55,10 @@ class LikeFilter(Filter):
     def get_expression(self) -> BinaryExpression:
         column = super().get_expression()
         return column.ilike(f"%{self.value}%")
+
+    @property
+    def is_nullable(self):
+        return self.value is None
 
 
 class EqualFilter(Filter):
@@ -62,23 +74,24 @@ class EqualFilter(Filter):
         column = super().get_expression()
         return column == self.value
 
+    @property
+    def is_nullable(self):
+        return self.value is None
+
 
 class FilterCollection:
     def __init__(self, *filters: Filter):
         self.filters: list[Filter] = []
         for arg in filters:
-            if isinstance(arg, filter):
-                self.filters.append(arg)
+            if isinstance(arg, Filter):
+                if not arg.is_nullable:
+                    self.filters.append(arg)
             else:
                 raise ValueError("FilterCollection can includes only Filter objects")
 
     def __iter__(self):
         for filter in self.filters:
-            yield filter
+            yield filter.get_expression()
 
     def get_full_expression(self):
-        return and_(*self)
-
-
-# Реализовать общие фильтры по логическим операциям и именам атрибутов (через магические методы)
-# Сделать класс обработчик фильтров
+        return and_(*self) if self.filters else True

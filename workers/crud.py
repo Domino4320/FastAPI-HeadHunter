@@ -1,4 +1,13 @@
-from sqlalchemy import text, insert, values, select, delete, update, Sequence
+from sqlalchemy import (
+    text,
+    insert,
+    values,
+    select,
+    delete,
+    update,
+    Sequence,
+    BinaryExpression,
+)
 from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 from .schemas import WorkerPostSchema, WorkerPatchSchema
@@ -20,8 +29,10 @@ class WorkersProcessor:
         await session.commit()
 
     @staticmethod
-    async def get_workers_from_db(session: AsyncSession) -> Sequence[Worker]:
-        query = select(Worker).options(joinedload(Worker.resume))
+    async def get_workers_from_db(
+        session: AsyncSession, filters: BinaryExpression | bool
+    ) -> Sequence[Worker]:
+        query = select(Worker).where(filters).options(joinedload(Worker.resume))
         result = await session.execute(query)
         return result.unique().scalars().all()
 

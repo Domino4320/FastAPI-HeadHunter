@@ -116,5 +116,5 @@ class ResultCheck:
 
     @staticmethod
     def check_result(result: list, detail: str) -> None:
-        if result == []:
+        if bool(result) == False:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)

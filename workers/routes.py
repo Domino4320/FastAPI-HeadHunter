@@ -1,7 +1,7 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import APIRouter, HTTPException, status, Path
+from fastapi import APIRouter, HTTPException, status, Path, Depends
 from .crud import WorkersProcessor
 from core.dependencies import SessionDep
+from core.models import Worker
 from workers.schemas import (
     WorkerGetSchemaWithResume,
     WorkerPatchSchema,
@@ -10,7 +10,9 @@ from workers.schemas import (
 )
 from resumes.schemas import ResumeGetSchema  # положил класс в globals
 from typing import Annotated, List
-from core.utils import Specialization, ResultCheck
+from core.utils import Specialization, ResultCheck, City, Status
+from core.query_schemas import RangeValuesSchema
+from core.filters import LikeFilter, EqualFilter, RangeFilter, FilterCollection
 
 WorkerGetSchemaWithResume.model_rebuild()  # заребилдил модель, чтобы строковая аннотация превратилась в класс
 
@@ -27,14 +29,20 @@ WorkerID = Annotated[int, Path(gt=0)]
 )
 async def get_workers(
     session: SessionDep,
+    age_range: Annotated[RangeValuesSchema, Depends()],
     specialization: Specialization | None = None,
+    city: City | None = None,
+    status: Status | None = None,
 ):
-    if not specialization:
-        result = await WorkersProcessor.get_workers_from_db(session)
-    else:
-        result = await WorkersProcessor.get_workers_by_specialization_from_db(
-            session, specialization
-        )
+    filters = FilterCollection(
+        RangeFilter("age", Worker, age_range.min, age_range.max),
+        EqualFilter("specialization", Worker, specialization),
+        EqualFilter("city", Worker, city),
+        EqualFilter("status", Worker, status),
+    )
+    result = await WorkersProcessor.get_workers_from_db(
+        session, filters.get_full_expression()
+    )
     ResultCheck.check_result(result, "workers wasn`t found")
     return result
 

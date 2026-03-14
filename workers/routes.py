@@ -26,7 +26,8 @@ WorkerID = Annotated[int, Path(gt=0)]
     summary="Получить всех работников из БД",
 )
 async def get_workers(
-    session: SessionDep, specialization: Specialization | None = None
+    session: SessionDep,
+    specialization: Specialization | None = None,
 ):
     if not specialization:
         result = await WorkersProcessor.get_workers_from_db(session)

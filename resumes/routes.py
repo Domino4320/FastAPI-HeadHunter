@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from resumes.crud import ResumeProcessor
 from core.dependencies import SessionDep
 from resumes.schemas import (
@@ -7,7 +7,9 @@ from resumes.schemas import (
     ResumePatchSchema,
 )
 from workers.schemas import WorkerGetSchema
-from typing import List
+from typing import List, Annotated
+from core.query_schemas import PositiveRangeValuesSchema
+from core.enums import Education
 
 ResumeGetSchemaWithWorker.model_rebuild()
 
@@ -19,7 +21,12 @@ router = APIRouter(prefix="/resumes", tags=["Резюме"])
     response_model=List[ResumeGetSchemaWithWorker],
     summary="Получить все резюме работников из БД",
 )
-async def get_resumes(session: SessionDep):
+async def get_resumes(
+    session: SessionDep,
+    keywords: Annotated[str | None, Query(min_length=10, max_length=200)] = None,
+    salary: PositiveRangeValuesSchema | None = None,
+    education: Education | None = None,
+):
     results = await ResumeProcessor.get_resumes_from_db(session)
     return results
 

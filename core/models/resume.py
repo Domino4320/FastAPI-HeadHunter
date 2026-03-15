@@ -1,6 +1,6 @@
 from core.database import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from core.utils import Education
+from core.enums import Education
 from sqlalchemy import ForeignKey
 from sqlalchemy import String, CheckConstraint
 from pydantic import HttpUrl

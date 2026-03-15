@@ -17,7 +17,7 @@ from sqlalchemy import and_
 from enum import Enum
 from datetime import datetime, timezone
 from typing import Annotated
-from core.utils import City, Status, Specialization
+from core.enums import City, Status, Specialization
 from typing import List
 
 

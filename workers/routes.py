@@ -10,8 +10,9 @@ from workers.schemas import (
 )
 from resumes.schemas import ResumeGetSchema  # положил класс в globals
 from typing import Annotated, List
-from core.utils import Specialization, ResultCheck, City, Status
-from core.query_schemas import RangeValuesSchema
+from core.enums import Specialization, City, Status
+from core.utils import ResultCheck
+from core.query_schemas import PositiveRangeValuesSchema
 from core.filters import LikeFilter, EqualFilter, RangeFilter, FilterCollection
 
 WorkerGetSchemaWithResume.model_rebuild()  # заребилдил модель, чтобы строковая аннотация превратилась в класс
@@ -29,7 +30,7 @@ WorkerID = Annotated[int, Path(gt=0)]
 )
 async def get_workers(
     session: SessionDep,
-    age_range: Annotated[RangeValuesSchema, Depends()],
+    age_range: Annotated[PositiveRangeValuesSchema, Depends()],
     specialization: Specialization | None = None,
     city: City | None = None,
     status: Status | None = None,

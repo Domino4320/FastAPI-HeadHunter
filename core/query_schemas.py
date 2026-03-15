@@ -1,5 +1,6 @@
 from pydantic import BaseModel, model_validator
 from fastapi import HTTPException, status
+from typing import Self
 
 
 class RangeValuesSchema(BaseModel):
@@ -17,3 +18,11 @@ class RangeValuesSchema(BaseModel):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Max less or equal then min",
         )
+
+
+class PositiveRangeValuesSchema(RangeValuesSchema):
+    @model_validator(mode="after")
+    def check_positive(self) -> Self:
+        if min >= 0 and max >= 0:
+            return self
+        raise ValueError("min and max values must be positive")

@@ -39,7 +39,7 @@ class ResumeProcessor:
         return result.rowcount
 
     @staticmethod
-    async def get_cocrete_resume_from_db(
+    async def get_concrete_resume_from_db(
         session: AsyncSession, resume_id: int
     ) -> Resume:
         result = await session.get(

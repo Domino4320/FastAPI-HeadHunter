@@ -50,8 +50,8 @@ async def patch_resume(
     summary="Получить конкретное резюме работника из БД",
     response_model=ResumeGetSchemaWithWorker,
 )
-async def get_cocrete_resume(session: SessionDep, resume_id: int):
-    resume = await ResumeProcessor.get_cocrete_resume_from_db(session, resume_id)
+async def get_concrete_resume(session: SessionDep, resume_id: int):
+    resume = await ResumeProcessor.get_concrete_resume_from_db(session, resume_id)
     if resume is None:
         raise HTTPException(status_code=404, detail="resume was not found")
     return resume

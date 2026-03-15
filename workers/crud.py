@@ -8,7 +8,7 @@ from sqlalchemy import (
     Sequence,
     BinaryExpression,
 )
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from .schemas import WorkerPostSchema, WorkerPatchSchema
 from core.models.worker import Worker
@@ -32,9 +32,9 @@ class WorkersProcessor:
     async def get_workers_from_db(
         session: AsyncSession, filters: BinaryExpression | bool
     ) -> Sequence[Worker]:
-        query = select(Worker).where(filters).options(joinedload(Worker.resume))
+        query = select(Worker).where(filters).options(selectinload(Worker.resume))
         result = await session.execute(query)
-        return result.unique().scalars().all()
+        return result.scalars().all()
 
     @staticmethod
     async def delete_worker_from_db(id: int, session: AsyncSession) -> None:
@@ -59,15 +59,3 @@ class WorkersProcessor:
             Worker, worker_id, options=(joinedload(Worker.resume),)
         )
         return result
-
-    @staticmethod
-    async def get_workers_by_specialization_from_db(
-        session: AsyncSession, specialization: Specialization
-    ) -> Sequence[Worker]:
-        query = (
-            select(Worker)
-            .options(joinedload(Worker.resume))
-            .where(Worker.specialization == specialization)
-        )
-        result = await session.execute(query)
-        return result.unique().scalars().all()

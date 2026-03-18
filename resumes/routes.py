@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from resumes.crud import ResumeProcessor
 from core.dependencies import SessionDep
 from resumes.schemas import (
@@ -8,8 +8,10 @@ from resumes.schemas import (
 )
 from workers.schemas import WorkerGetSchema
 from typing import List, Annotated
-from core.query_schemas import PositiveRangeValuesSchema
+from core.query_schemas import PositiveRangeValuesSchema, KeywordSchema
 from core.enums import Education
+from core.filters import FilterCollection, LikeFilter, EqualFilter, RangeFilter
+from core.models import Resume
 
 ResumeGetSchemaWithWorker.model_rebuild()
 
@@ -23,11 +25,26 @@ router = APIRouter(prefix="/resumes", tags=["Резюме"])
 )
 async def get_resumes(
     session: SessionDep,
-    keywords: Annotated[str | None, Query(min_length=10, max_length=200)] = None,
-    salary: PositiveRangeValuesSchema | None = None,
+    salary: Annotated[
+        PositiveRangeValuesSchema, Query(description="salary range mentioned in resume")
+    ] = None,
+    keywords: Annotated[KeywordSchema, Query()] = None,
     education: Education | None = None,
+    education_status: bool | None = None,
+    educational_institute: Annotated[
+        str | None, Query(min_length=1, max_length=100)
+    ] = None,
 ):
-    results = await ResumeProcessor.get_resumes_from_db(session)
+    filters = FilterCollection(
+        LikeFilter("about_me", Resume, keywords.keyword),
+        RangeFilter("salary_expectations", Resume, salary.min, salary.max),
+        EqualFilter("education", Resume, education),
+        EqualFilter("educational_status", Resume, education_status),
+        LikeFilter("educational_institute", Resume, educational_institute),
+    )
+    results = await ResumeProcessor.get_resumes_from_db(
+        session, filters.get_full_expression()
+    )
     return results
 
 
@@ -62,3 +79,6 @@ async def get_concrete_resume(session: SessionDep, resume_id: int):
     if resume is None:
         raise HTTPException(status_code=404, detail="resume was not found")
     return resume
+
+
+# Доделать логику range без одного значения

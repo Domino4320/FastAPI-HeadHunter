@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status, Path, Depends
+from fastapi import APIRouter, HTTPException, status, Path, Depends, Query
 from .crud import WorkersProcessor
 from core.dependencies import SessionDep
 from core.models import Worker
@@ -30,13 +30,15 @@ WorkerID = Annotated[int, Path(gt=0)]
 )
 async def get_workers(
     session: SessionDep,
-    age_range: Annotated[PositiveRangeValuesSchema, Depends()],
+    age_range: Annotated[
+        PositiveRangeValuesSchema, Query(description="age range of workers")
+    ] = None,
     specialization: Specialization | None = None,
     city: City | None = None,
     status: Status | None = None,
 ):
     filters = FilterCollection(
-        RangeFilter("age", Worker, age_range.min, age_range.max),
+        RangeFilter("age", Worker, age_range),
         EqualFilter("specialization", Worker, specialization),
         EqualFilter("city", Worker, city),
         EqualFilter("status", Worker, status),

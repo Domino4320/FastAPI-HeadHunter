@@ -1,5 +1,5 @@
 from pydantic import Field, HttpUrl, AfterValidator, model_validator
-from core.utils import Education
+from core.enums import Education
 from typing import Annotated, Self
 from pydantic import BaseModel, PlainSerializer
 from core.utils import check_changes_availability as utils_check

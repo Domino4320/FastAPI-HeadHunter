@@ -101,3 +101,23 @@ class Education(str, Enum):
     MASTER = "Магистратура"
     CANDIDATE_OF_SCIENCES = "Кандидат наук"
     DOCTOR_OF_SCIENCES = "Доктор наук"
+
+
+class WorkFormat(str, Enum):
+    AT_THE_EMPLOYERS_PLACE = "На месте работодателя"
+    ONLINE = "Онлайн"
+    COMBINED = "Совмещенный"
+
+
+class Employment(str, Enum):
+    INTERNSHIP = "Стажировка"
+    PARTTIME_EMPLOYMENT = "Частичная занятость"
+    FULLTIME_EMPLOYMENT = "Полная занятость"
+    FLEXIBLE_SCHEDULE = "Гибкий график"
+
+
+class Experience(str, Enum):
+    NO_EXPERIENCE = "Нет опыта"
+    ONE_TO_THREE = "1-3 года"
+    THREE_TO_SIX = "3-6 лет"
+    GREATER_THEN_SIX = "Более 6 лет"

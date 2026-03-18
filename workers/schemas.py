@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field, model_validator
 from typing import Self
-from core.utils import City, Specialization, Status
+from core.enums import City, Specialization, Status
 from typing import List
 from core.utils import check_changes_availability as utils_check
 

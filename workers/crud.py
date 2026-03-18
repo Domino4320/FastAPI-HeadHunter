@@ -15,7 +15,7 @@ from core.models.worker import Worker
 from core.models.resume import Resume
 from typing import Any
 from core.database import db_context, Base
-from core.utils import Specialization
+from core.enums import Specialization
 
 
 class WorkersProcessor:

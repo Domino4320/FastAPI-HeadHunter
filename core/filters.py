@@ -1,7 +1,8 @@
-from core.utils import Specialization, City, Status
+from core.enums import Specialization, City, Status
 from typing import Any
 from sqlalchemy import and_, BinaryExpression, Column
 from abc import ABC, abstractmethod
+from core.query_schemas import RangeValuesSchema
 
 
 class Filter(ABC):
@@ -24,24 +25,23 @@ class Filter(ABC):
 
 
 class RangeFilter(Filter):
-    def __init__(self, column_name: str, model: Any, min: int, max: int):
+    def __init__(self, column_name: str, model: Any, schema: RangeValuesSchema):
         """
         фильтр для поиска значений с диапазоном между min и max
         """
         super().__init__(column_name, model)
-        self.min = min
-        self.max = max
+        self.schema = schema
 
     def get_expression(self) -> BinaryExpression:
         column = super().get_expression()
         return and_(
-            column >= self.min,
-            column <= self.max,
+            (column >= self.schema.min) if self.schema.min else True,
+            (column <= self.schema.max) if self.schema.max else True,
         )
 
     @property
     def is_nullable(self):
-        return self.min is None and self.max is None
+        return self.schema is None
 
 
 class LikeFilter(Filter):

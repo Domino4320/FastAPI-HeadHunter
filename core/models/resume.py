@@ -1,12 +1,11 @@
-from core.database import Base
+from core.models import BaseWithTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from core.enums import Education
 from sqlalchemy import ForeignKey
 from sqlalchemy import String, CheckConstraint
-from pydantic import HttpUrl
 
 
-class Resume(Base):
+class Resume(BaseWithTime):
     worker_id: Mapped[int] = mapped_column(
         ForeignKey("worker.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False
     )

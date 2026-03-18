@@ -4,14 +4,17 @@ from core.models.resume import Resume
 from resumes.schemas import ResumePostSchema
 from sqlalchemy.orm import joinedload
 from typing import Any
-from core.utils import Specialization
+from core.enums import Specialization
+from sqlalchemy import BinaryExpression
 
 
 class ResumeProcessor:
 
     @staticmethod
-    async def get_resumes_from_db(session: AsyncSession) -> Sequence[Resume]:
-        query = select(Resume).options(joinedload(Resume.worker))
+    async def get_resumes_from_db(
+        session: AsyncSession, filters: BinaryExpression | bool
+    ) -> Sequence[Resume]:
+        query = select(Resume).options(joinedload(Resume.worker)).where(filters)
         result = await session.execute(query)
         return result.scalars().all()
 

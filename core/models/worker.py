@@ -1,14 +1,5 @@
 from sqlalchemy import (
-    Table,
-    Column,
-    Integer,
-    String,
-    MetaData,
-    Date,
     CheckConstraint,
-    ForeignKey,
-    text,
-    cast,
     DateTime,
 )
 from core.models import BaseWithTime

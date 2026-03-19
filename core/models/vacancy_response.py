@@ -9,6 +9,7 @@ if TYPE_CHECKING:
 
 
 class VacancyResponse(BaseWithTime):
+    __tablename__ = "vacancy_response"
     worker_id: Mapped[int] = mapped_column(
         ForeignKey("worker.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False
     )

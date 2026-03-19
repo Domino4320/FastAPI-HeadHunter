@@ -1,8 +1,8 @@
-"""vacancy and vacancy response table
+"""server-default for base with time
 
-Revision ID: e1c0dfb88a13
+Revision ID: 7020af132a67
 Revises: 53fa693c6e84
-Create Date: 2026-03-18 19:09:14.325357
+Create Date: 2026-03-19 15:27:02.407362
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "e1c0dfb88a13"
+revision: str = "7020af132a67"
 down_revision: Union[str, Sequence[str], None] = "53fa693c6e84"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -59,7 +59,12 @@ def upgrade() -> None:
             nullable=False,
         ),
         sa.Column("employer_contacts", sa.String(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.Column("id", sa.Integer(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -68,7 +73,12 @@ def upgrade() -> None:
         sa.Column("worker_id", sa.Integer(), nullable=False),
         sa.Column("vacancy_id", sa.Integer(), nullable=False),
         sa.Column("message", sa.String(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
         sa.Column("id", sa.Integer(), nullable=False),
         sa.ForeignKeyConstraint(
             ["vacancy_id"],
@@ -86,11 +96,21 @@ def upgrade() -> None:
     )
     op.add_column(
         "resume",
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
     )
     op.add_column(
         "worker",
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
     )
     op.drop_column("worker", "registration_date")
     # ### end Alembic commands ###

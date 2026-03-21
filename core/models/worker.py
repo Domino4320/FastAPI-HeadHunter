@@ -28,7 +28,7 @@ class Worker(BaseWithTime):
     status: Mapped[Status] = mapped_column(nullable=False, default=Status.NOT_LOOKING)
     specialization: Mapped[Specialization] = mapped_column(nullable=True)
     resume: Mapped[List["Resume"]] = relationship(back_populates="worker")
-    vacancy_response: Mapped[List["VacancyResponse"]] = relationship(
+    vacancy_responses: Mapped[List["VacancyResponse"]] = relationship(
         back_populates="worker"
     )
     # back_populates синхронизирует объекты в памяти в двух таблицах

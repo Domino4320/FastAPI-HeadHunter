@@ -3,6 +3,10 @@ from core.enums import Education
 from typing import Annotated, Self
 from pydantic import BaseModel, PlainSerializer
 from core.utils import check_changes_availability as utils_check
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from workers.schemas import WorkerGetSchema
 
 
 def validate_porfolio_url(url: HttpUrl) -> HttpUrl:

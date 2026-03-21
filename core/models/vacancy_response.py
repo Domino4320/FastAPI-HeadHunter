@@ -17,5 +17,5 @@ class VacancyResponse(BaseWithTime):
         ForeignKey("vacancy.id", ondelete="CASCADE", onupdate="CASCADE"), nullable=False
     )
     worker: Mapped["Worker"] = relationship(back_populates="vacancy_response")
-    vacancy: Mapped["Vacancy"] = relationship(back_populates="vacancy_response")
+    vacancy: Mapped["Vacancy"] = relationship(back_populates="vacancy_responses")
     message: Mapped[str] = mapped_column(nullable=True)

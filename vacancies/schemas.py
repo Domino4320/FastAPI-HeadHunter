@@ -16,7 +16,7 @@ class VacancyBase(BaseModel):
 
 
 class VacancyGetSchema(VacancyBase):
-    pass
+    id: int
 
 
 class VacancyPostSchema(VacancyBase):

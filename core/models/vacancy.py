@@ -15,6 +15,7 @@ class Vacancy(BaseWithTime):
     work_format: Mapped[WorkFormat] = mapped_column(nullable=False)
     employment: Mapped[Employment] = mapped_column(nullable=False)
     experience: Mapped[Experience] = mapped_column(nullable=False)
+    employer: Mapped[str] = mapped_column(nullable=False)
     employer_contacts: Mapped[str] = mapped_column(nullable=False)
     vacancy_responses: Mapped[List["VacancyResponse"]] = relationship(
         back_populates="vacancy"

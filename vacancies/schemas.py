@@ -13,6 +13,7 @@ class VacancyBase(BaseModel):
     employment: Employment
     experience: Experience
     employer_contacts: str
+    employer: str
 
 
 class VacancyGetSchema(VacancyBase):

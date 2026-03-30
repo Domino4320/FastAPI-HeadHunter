@@ -9,3 +9,8 @@ class UserSchema(BaseModel):
 
 class UserInDB(UserSchema):
     hashed_password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

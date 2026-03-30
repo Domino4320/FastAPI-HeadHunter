@@ -2,6 +2,10 @@ from fastapi import Depends
 from typing import Annotated
 from .schemas import UserSchema
 from fastapi.security import OAuth2PasswordBearer
+from .settings import crypt_settings
+from pwdlib import PasswordHash
+from datetime import timedelta, datetime
+import jwt
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="private/token")
 
@@ -21,22 +25,46 @@ fake_db = {
 }
 
 
-def decode_token(token: Annotated[str, Depends(oauth2_scheme)]) -> UserSchema:
-    return UserSchema(
-        username="John",
-        email="john@gmail.com",
-        phone="+375298978675",
-    )
+class PasswordProcessor:
+
+    password_hasher = PasswordHash.recommended()
+    DUMMY_HASH = password_hasher.hash("dummy_passsword")
+
+    @classmethod
+    def hash_password(cls, password: str) -> str:
+        return cls.password_hasher.hash(password)
+
+    @classmethod
+    def verify_password(cls, plain_password, hashed_password):
+        return cls.hash_password(plain_password) == hashed_password
+
+    @classmethod
+    def dummy_verifying(cls, password):
+        cls.hash_password(password) == cls.DUMMY_HASH
 
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
-    user = decode_token(token)
-    return user
+class Authenticator:
 
+    @staticmethod
+    def authenticate_user(username: str, password: str):
+        user = fake_db.get(username)
+        if not user:
+            PasswordProcessor.dummy_verifying(password)
+            return False
+        if PasswordProcessor.verify_password(password):
+            return user
+        return False
 
-def hashfunc_imitation(password: str) -> str:
-    return "hash_" + password
-
-
-def get_user(username: str) -> UserSchema | None:
-    return UserSchema(user := fake_db.get(username)) if not user is None else None
+    @staticmethod
+    def create_access_token(data: dict):
+        to_encode = data.copy()
+        expire = datetime.now() + timedelta(
+            minutes=crypt_settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+        to_encode.update({"exp": expire})
+        encoded_jwt = jwt.encode(
+            payload=to_encode,
+            key=crypt_settings.SECRET_KEY,
+            algorithm=crypt_settings.ALGORITHM,
+        )
+        return encoded_jwt

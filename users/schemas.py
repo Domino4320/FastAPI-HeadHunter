@@ -1,14 +1,29 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
-class UserSchema(BaseModel):
-    username: str
-    email: str | None = None
-    phone: str | None = None
+class UserBase(BaseModel):
+    username: str = Field(max_length=50)
 
 
-class UserInDB(UserSchema):
-    hashed_password: str
+class UserBaseWithID(UserBase):
+    id: int
+
+
+class UserGetSchema(UserBaseWithID):
+    email: str
+    login: str
+
+
+class UserPostSchema(UserBase):
+    email: EmailStr | None = Field(None)
+    login: str = Field(max_length=30, pattern=r"")
+    password: str
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, value: str) -> str:
+        if not re.search(r"[A-Z]", value):
+            ...
 
 
 class Token(BaseModel):

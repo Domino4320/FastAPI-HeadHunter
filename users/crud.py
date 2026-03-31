@@ -1,4 +1,4 @@
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 from typing import Annotated
 from .schemas import UserSchema
 from fastapi.security import OAuth2PasswordBearer
@@ -68,3 +68,14 @@ class Authenticator:
             algorithm=crypt_settings.ALGORITHM,
         )
         return encoded_jwt
+
+
+# def get_current_user(token : Annotated[str ,Depends[oauth2_scheme]]) -> UserSchema:
+#     credentials_exception = HTTPException(
+#         status_code=status.HTTP_401_UNAUTHORIZED,
+#         detail="Could not validate credentials",
+#         headers={"WWW-Authenticate" : "Bearer"}
+#     )
+#     try:
+#         payload = jwt.decode(jwt=token, key=crypt_settings.SECRET_KEY, algorithms = [crypt_settings.ALGORITHM],)
+#     except InvalidTokenError

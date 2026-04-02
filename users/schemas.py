@@ -1,31 +1,24 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
+from core.utils import LoginValidationStrategy, PasswordValidationStrategy
+from typing import Annotated
+
+DefaultInputField = Annotated[str, Field(min_length=8, max_length=50)]
 
 
-class UserBase(BaseModel):
-    username: str = Field(max_length=50)
+class UserRegistrationSchema(BaseModel):
+    username: DefaultInputField
+    login: DefaultInputField
+    password: DefaultInputField
+    email: EmailStr = Field(max_length=200)
 
-
-class UserBaseWithID(UserBase):
-    id: int
-
-
-class UserGetSchema(UserBaseWithID):
-    email: str
-    login: str
-
-
-class UserPostSchema(UserBase):
-    email: EmailStr | None = Field(None)
-    login: str = Field(max_length=30, pattern=r"")
-    password: str
+    @field_validator("login")
+    @classmethod
+    def validate_login(cls, v: str) -> str:
+        LoginValidationStrategy.validate(v)
+        return v
 
     @field_validator("password")
     @classmethod
-    def validate_password(cls, value: str) -> str:
-        if not re.search(r"[A-Z]", value):
-            ...
-
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+    def validate_password(cls, v: str) -> str:
+        PasswordValidationStrategy.validate(v)
+        return v

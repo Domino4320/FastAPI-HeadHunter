@@ -79,6 +79,3 @@ async def get_concrete_resume(session: SessionDep, resume_id: int):
     if resume is None:
         raise HTTPException(status_code=404, detail="resume was not found")
     return resume
-
-
-# Доделать логику range без одного значения

@@ -1,6 +1,5 @@
 from fastapi import Depends, HTTPException, status
 from typing import Annotated
-from .schemas import UserSchema
 from fastapi.security import OAuth2PasswordBearer
 from .settings import crypt_settings
 from pwdlib import PasswordHash

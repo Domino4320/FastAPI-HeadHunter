@@ -3,6 +3,8 @@ from fastapi import HTTPException, status
 import re
 from functools import wraps
 from typing import Callable
+from enum import Enum
+from abc import ABC, abstractmethod
 
 
 def check_changes_availability(object) -> Any:
@@ -19,61 +21,141 @@ class ResultCheck:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=detail)
 
 
-class ExceptionAdder:
+class RegexBuilder:
+    def __init__(self):
+        self._uppers = False
+        self._lowers = False
+        self._special_symbols = ""
+        self._numbers = False
 
-    def __init__(self, error: type[Exception], message: str):
-        self.error = error
-        self.message = message
+    def add_uppers(self):
+        self._uppers = True
+        return self
 
-    def __call__(self, func: Callable):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            if not func(*args, **kwargs):
-                raise self.error(self.message)
+    def add_lowers(self):
+        self._lowers = True
+        return self
+
+    def add_special_symbols(self, special_symbols: str = "!#$%&*_"):
+        self._special_symbols = special_symbols
+        return self
+
+    def add_numbers(self):
+        self._numbers = True
+        return self
+
+    def build(self):
+        inner_pattern_list = [
+            "a-z" if self._lowers else "",
+            "A-Z" if self._uppers else "",
+            "0-9" if self._numbers else "",
+            self._special_symbols,
+        ]
+        inner_pattern = "".join(inner_pattern_list)
+        full_pattern = rf"^[{inner_pattern}]+$"
+        return full_pattern
+
+
+class SymbolsValidator:
+
+    @staticmethod
+    def validate_on_correct_symbols(string: str, regex: str) -> bool:
+        return bool(re.search(rf"{regex}", string))
+
+    @staticmethod
+    def validate_on_upper_symbol_availability(string: str) -> bool:
+        return bool(re.search(r"[A-Z]", string))
+
+    @staticmethod
+    def validate_on_lower_symbol_availability(string: str) -> bool:
+        return bool(re.search(r"[a-z]", string))
+
+    @staticmethod
+    def validate_on_special_symbol_availability(string: str) -> bool:
+        return bool(re.search(r"[!#$%&*_]", string))
+
+    @staticmethod
+    def validate_on_number_availability(string: str) -> bool:
+        return bool(re.search(r"[0-9]", string))
+
+
+class ValidationProxy:
+    @staticmethod
+    def validate(
+        method_name: str,
+        exc_message: str,
+        *,
+        exception: type[Exception] = ValueError,
+        validator=SymbolsValidator,
+        method_args: list | None = None,
+    ):
+        validation_method = getattr(validator, method_name)
+        if validation_method(*(method_args or [])):
             return True
+        raise exception(exc_message)
 
-        return wrapper
 
-
-class PasswordValidator:
-
-    @staticmethod
-    @ExceptionAdder(ValueError, "Password contains not correct symbols")
-    def validate_on_correct_symbols(password: str) -> bool:
-        return bool(re.search(r"^[a-zA-Z0-9!#$%&*_]+$", password))
-
-    @staticmethod
-    @ExceptionAdder(
-        ValueError,
-        "Password doesn`t contains symbol in upper case. Password is not secure.",
-    )
-    def validate_on_upper_symbol_availability(password: str) -> bool:
-        return bool(re.search(r"[A-Z]", password))
-
-    @staticmethod
-    @ExceptionAdder(
-        ValueError,
-        """Password doesn`t contains special symbol. 
-        Password is not secure. Allowed special symbols - !#$%&*_""",
-    )
-    def validate_on_special_symbol_availability(password: str) -> bool:
-        return bool(re.search(r"[!#$%&*_]", password))
-
-    @staticmethod
-    @ExceptionAdder(
-        ValueError,
-        "Password doesn`t contains number. Password is not secure.",
-    )
-    def validate_on_number_availability(password: str) -> bool:
-        return bool(re.search(r"[0-9]", password))
+class ValidationStrategy(ABC):
 
     @classmethod
-    def full_validate(cls, password: str, skip: list[str] = None) -> bool:
-        skip_list = ["full_validate"]
-        if skip:
-            skip_list.extend(skip)
-        for name in dir(cls):
-            if name.startswith("__") or name in skip:
-                continue
-            if callable(func := getattr(cls, name)):
-                func(password)
+    @abstractmethod
+    def validate():
+        pass
+
+
+class LoginValidationStrategy(ValidationStrategy):
+
+    @staticmethod
+    def validate(string: str):
+        ValidationProxy.validate(
+            "validate_on_correct_symbols",
+            "Login contain`s not allowed symbols",
+            method_args=[
+                string,
+                RegexBuilder()
+                .add_lowers()
+                .add_numbers()
+                .add_special_symbols("_")
+                .add_uppers()
+                .build(),
+            ],
+        )
+
+
+class PasswordValidationStrategy(ValidationStrategy):
+
+    @staticmethod
+    def validate(string: str):
+        ValidationProxy.validate(
+            "validate_on_correct_symbols",
+            "Password contain`s not allowed symbols",
+            method_args=[
+                string,
+                RegexBuilder()
+                .add_lowers()
+                .add_numbers()
+                .add_special_symbols()
+                .add_uppers()
+                .build(),
+            ],
+        )
+        ValidationProxy.validate(
+            "validate_on_upper_symbol_availability",
+            "Password must contain`s one or more symbol in upper case",
+            method_args=[string],
+        )
+        ValidationProxy.validate(
+            "validate_on_special_symbol_availability",
+            "Password must contain`s one or more special symbol",
+            method_args=[string],
+        )
+        ValidationProxy.validate(
+            "validate_on_lower_symbol_availability",
+            "Password must contain`s one or more symbol in lower case",
+            method_args=[string],
+        )
+        ValidationProxy.validate(
+            "validate_on_number_availability",
+            "Password must contain`s one or more number",
+            method_args=[string],
+        )

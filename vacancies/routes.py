@@ -6,6 +6,7 @@ from core.models.vacancy import Vacancy
 from vacancies.crud import VacancyProcessor
 from vacancies.schemas import VacancyGetSchema, VacancyPostSchema
 
+
 router = APIRouter(prefix="/vacancy", tags=["Вакансии"])
 
 

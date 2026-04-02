@@ -5,7 +5,6 @@ from resumes.routes import router as resumes_router
 from vacancies.routes import router as vacancies_router
 from users.routes import router as users_router
 from contextlib import asynccontextmanager
-from fastapi.security import OAuth2PasswordBearer
 
 
 @asynccontextmanager

@@ -1,80 +1,36 @@
-from fastapi import Depends, HTTPException, status
-from typing import Annotated
-from fastapi.security import OAuth2PasswordBearer
 from .settings import crypt_settings
-from pwdlib import PasswordHash
-from datetime import timedelta, datetime
-import jwt
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="private/token")
-
-fake_db = {
-    "John": {
-        "username": "John",
-        "email": "john@gmail.com",
-        "phone": "+375298169348",
-        "hashed_password": "hash_12345678",
-    },
-    "Bob": {
-        "username": "Bob",
-        "email": "Bob@gmail.com",
-        "phone": None,
-        "hashed_password": "hash_1234567890",
-    },
-}
+from .schemas import UserRegistrationSchema
+from core.utils import Hasher
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from core.models.users import User
+import asyncio
 
 
-class PasswordProcessor:
-
-    password_hasher = PasswordHash.recommended()
-    DUMMY_HASH = password_hasher.hash("dummy_passsword")
-
-    @classmethod
-    def hash_password(cls, password: str) -> str:
-        return cls.password_hasher.hash(password)
-
-    @classmethod
-    def verify_password(cls, plain_password, hashed_password):
-        return cls.hash_password(plain_password) == hashed_password
-
-    @classmethod
-    def dummy_verifying(cls, password):
-        cls.hash_password(password) == cls.DUMMY_HASH
+class BusyDataError(Exception):
+    def __init__(self, message: str = None):
+        self.message = message
+        super().__init__(self.message)
 
 
-class Authenticator:
+class Register:
 
-    @staticmethod
-    def authenticate_user(username: str, password: str):
-        user = fake_db.get(username)
-        if not user:
-            PasswordProcessor.dummy_verifying(password)
-            return False
-        if PasswordProcessor.verify_password(password):
-            return user
-        return False
+    def __init__(self, data: UserRegistrationSchema, session: AsyncSession):
+        self.user = data
+        self.session = session
 
-    @staticmethod
-    def create_access_token(data: dict):
-        to_encode = data.copy()
-        expire = datetime.now() + timedelta(
-            minutes=crypt_settings.ACCESS_TOKEN_EXPIRE_MINUTES
-        )
-        to_encode.update({"exp": expire})
-        encoded_jwt = jwt.encode(
-            payload=to_encode,
-            key=crypt_settings.SECRET_KEY,
-            algorithm=crypt_settings.ALGORITHM,
-        )
-        return encoded_jwt
+    async def _check_user_data_availability(self) -> None:
+        login_query = select(User).where(User.login == self.user.login)
+        login_check = await self.session.execute(login_query)
+        email_query = select(User).where(User.email == self.user.email)
+        email_check = await self.session.execute(email_query)
+        if login_check.scalar():
+            raise BusyDataError("login is busy")
+        if email_check.scalar():
+            raise BusyDataError("email is busy")
 
-
-# def get_current_user(token : Annotated[str ,Depends[oauth2_scheme]]) -> UserSchema:
-#     credentials_exception = HTTPException(
-#         status_code=status.HTTP_401_UNAUTHORIZED,
-#         detail="Could not validate credentials",
-#         headers={"WWW-Authenticate" : "Bearer"}
-#     )
-#     try:
-#         payload = jwt.decode(jwt=token, key=crypt_settings.SECRET_KEY, algorithms = [crypt_settings.ALGORITHM],)
-#     except InvalidTokenError
+    async def register_user(self):
+        await self._check_user_data_availability()
+        self.user.password = Hasher.hash_password(self.user.password)
+        self.session.add(User(**self.user.model_dump()))
+        await self.session.commit()

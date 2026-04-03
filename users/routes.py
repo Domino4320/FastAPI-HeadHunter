@@ -1,18 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from typing import Annotated
-from .crud import (
-    oauth2_scheme,
-    fake_db,
-    Authenticator,
-    PasswordProcessor,
-)
 from .schemas import UserRegistrationSchema
 import jwt
 from core.dependencies import SessionDep
+from .crud import Register, BusyDataError
+from core.dependencies import SessionDep
 
 
-router = APIRouter(prefix="/security", tags=["Приватные пути"])
+router = APIRouter(prefix="/security", tags=["Сервис распознавания пользователей"])
 
 
 # @router.get("/current", summary="Получить текущего пользователя")
@@ -34,5 +29,12 @@ router = APIRouter(prefix="/security", tags=["Приватные пути"])
 
 
 @router.post("/register")
-async def register(data: UserRegistrationSchema):
-    return data
+async def register(data: UserRegistrationSchema, session: SessionDep):
+    try:
+        await Register(data, session).register_user()
+    except BusyDataError as error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=error.message,
+        )
+    return {"success": True}

@@ -1,10 +1,9 @@
-from typing import Self, Any
+from typing import Any
 from fastapi import HTTPException, status
 import re
-from functools import wraps
-from typing import Callable
 from enum import Enum
 from abc import ABC, abstractmethod
+from pwdlib import PasswordHash
 
 
 def check_changes_availability(object) -> Any:
@@ -159,3 +158,11 @@ class PasswordValidationStrategy(ValidationStrategy):
             "Password must contain`s one or more number",
             method_args=[string],
         )
+
+
+class Hasher:
+    hasher = PasswordHash.recommended()
+
+    @classmethod
+    def hash_password(cls, password: str) -> str:
+        return cls.hasher.hash(password)

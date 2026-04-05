@@ -1,5 +1,6 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, PrivateAttr
 from core.utils import LoginValidationStrategy, PasswordValidationStrategy
+from core.enums import Role
 from typing import Annotated
 
 DefaultInputField = Annotated[str, Field(min_length=8, max_length=50)]

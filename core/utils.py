@@ -26,6 +26,8 @@ class RegexBuilder:
         self._lowers = False
         self._special_symbols = ""
         self._numbers = False
+        self._lowers_rus = False
+        self._uppers_rus = False
 
     def add_uppers(self):
         self._uppers = True
@@ -35,7 +37,7 @@ class RegexBuilder:
         self._lowers = True
         return self
 
-    def add_special_symbols(self, special_symbols: str = "!#$%&*_"):
+    def add_special_symbols(self, special_symbols: str = "!#$%&*_-"):
         self._special_symbols = special_symbols
         return self
 
@@ -43,11 +45,21 @@ class RegexBuilder:
         self._numbers = True
         return self
 
+    def add_lowers_rus(self):
+        self._lowers_rus = True
+        return self
+
+    def add_uppers_rus(self):
+        self._uppers_rus = True
+        return self
+
     def build(self):
         inner_pattern_list = [
             "a-z" if self._lowers else "",
             "A-Z" if self._uppers else "",
             "0-9" if self._numbers else "",
+            "а-я" if self._lowers_rus else "",
+            "А-Я" if self._uppers_rus else "",
             self._special_symbols,
         ]
         inner_pattern = "".join(inner_pattern_list)
@@ -71,7 +83,7 @@ class SymbolsValidator:
 
     @staticmethod
     def validate_on_special_symbol_availability(string: str) -> bool:
-        return bool(re.search(r"[!#$%&*_]", string))
+        return bool(re.search(r"[!#$%&*_-]", string))
 
     @staticmethod
     def validate_on_number_availability(string: str) -> bool:

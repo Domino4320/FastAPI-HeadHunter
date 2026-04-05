@@ -4,7 +4,7 @@ from core.utils import Hasher
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from core.models.users import User
-import asyncio
+from core.enums import Role
 
 
 class BusyDataError(Exception):
@@ -29,8 +29,14 @@ class Register:
         if email_check.scalar():
             raise BusyDataError("email is busy")
 
-    async def register_user(self):
+    async def register_user(self, role: Role = None):
+
         await self._check_user_data_availability()
         self.user.password = Hasher.hash_password(self.user.password)
-        self.session.add(User(**self.user.model_dump()))
+        if role:
+            data = self.user.model_dump()
+            data.update({"role": role})
+            self.session.add(User(**data))
+        else:
+            self.session.add(User(**self.user.model_dump()))
         await self.session.commit()

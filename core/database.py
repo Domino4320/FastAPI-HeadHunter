@@ -1,11 +1,6 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy import URL, create_engine, text
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from core.config import settings
-from fastapi import APIRouter
 from core.models.base import Base
-import asyncio
 
 
 class DatabaseProcessor:

@@ -121,3 +121,8 @@ class Experience(str, Enum):
     ONE_TO_THREE = "1-3 года"
     THREE_TO_SIX = "3-6 лет"
     GREATER_THEN_SIX = "Более 6 лет"
+
+
+class Role(str, Enum):
+    USER = "USER"
+    ADMIN = "ADMIN"

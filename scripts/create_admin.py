@@ -1,33 +1,31 @@
+import sys
 from pathlib import Path
-import argparse
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+from users.schemas import UserRegistrationSchema
+import asyncio
+from core.enums import Role
+from users.crud import Register
+from contextlib import asynccontextmanager
+from core.database import db_context
 
 
-def create_folder_with_structure():
-    parser = argparse.ArgumentParser(
-        description="Script for auto generation of packages which works with tables in Db"
-    )
-    parser.add_argument("folder_name", help="name of a package")
-    parser.add_argument(
-        "--path", default=None, help="Optional path, default path is upper directory"
-    )
-    args = parser.parse_args()
-    BASE_DIR = Path(__file__).resolve().parent.parent
-    folder_path = (
-        Path(args.path) / args.folder_name if args.path else BASE_DIR / args.folder_name
-    )
-
-    folder_path.mkdir()
-    print(folder_path.absolute())
-    for file in (
-        "__init__.py",
-        "crud.py",
-        "schemas.py",
-        "routes.py",
-    ):
-        full_path = folder_path / file
-        full_path.touch()
+async def create_admin():
+    try:
+        admin = UserRegistrationSchema(
+            username=input("Admin username: "),
+            login=input("Admin login: "),
+            email=inp if (inp := input("Admin email: ")) else None,
+            password=input("Admin password: "),
+        )
+        local_session_manager = asynccontextmanager(db_context.get_session)
+        async with local_session_manager() as session:
+            await Register(admin, session).register_user(Role.ADMIN)
+        return "Admin was successfully added"
+    except ValueError:
+        print("ValidationError. Check UserRegistrationSchema.")
 
 
 if __name__ == "__main__":
-    print("Сюда зашло")
-    create_folder_with_structure()
+    asyncio.run(create_admin())

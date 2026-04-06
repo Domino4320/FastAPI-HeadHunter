@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, status, Path, Depends, Query
+from fastapi import APIRouter, HTTPException, status, Path, Query
 from .crud import WorkersProcessor
-from core.dependencies import SessionDep
+from core.dependencies import SessionDep, AdminRequieredDep
 from core.models import Worker
 from workers.schemas import (
     WorkerGetSchemaWithResume,
@@ -57,7 +57,9 @@ async def post_worker(data: WorkerPostSchema, session: SessionDep):
 
 
 @router.delete("/{worker_id}", summary="Удалить работника из БД")
-async def delete_worker(worker_id: WorkerID, session: SessionDep):
+async def delete_worker(
+    worker_id: WorkerID, session: SessionDep, check: AdminRequieredDep
+):
     await WorkersProcessor.delete_worker_from_db(worker_id, session)
     return {"success": True}
 

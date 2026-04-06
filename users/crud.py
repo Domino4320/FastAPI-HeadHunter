@@ -1,10 +1,12 @@
 from .settings import crypt_settings
-from .schemas import UserRegistrationSchema
+from .schemas import UserRegistrationSchema, TokenData, Token, UserLoginSchema
 from core.utils import Hasher
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from core.models.users import User
 from core.enums import Role
+import jwt
+from datetime import timedelta, datetime, timezone
 
 
 class BusyDataError(Exception):
@@ -40,3 +42,55 @@ class Register:
         else:
             self.session.add(User(**self.user.model_dump()))
         await self.session.commit()
+
+
+class TokenManager:
+
+    @staticmethod
+    def generate_token(data: TokenData):
+        token = jwt.encode(
+            payload=data.model_dump(),
+            key=crypt_settings.SECRET_KEY,
+            algorithm=crypt_settings.ALGORITHM,
+        )
+        return Token(access_token=token, token_type="bearer")
+
+    @staticmethod
+    def get_payload_from_token(token: str):
+        payload = jwt.decode(
+            jwt=token,
+            key=crypt_settings.SECRET_KEY,
+            algorithms=[crypt_settings.ALGORITHM],
+        )
+        return payload
+
+
+class AuthError(Exception):
+    def __init__(self, message: str = None):
+        self.message = message
+        super().__init__(message)
+
+
+class Authenticator:
+
+    def __init__(self, data: UserLoginSchema, session: AsyncSession):
+        self.data = data
+        self.session = session
+
+    async def _verify_user(self) -> User:
+        query = select(User).where(User.login == self.data.login)
+        raw_user = await self.session.execute(query)
+        user = raw_user.scalar_one_or_none()
+        if user and Hasher.verify_password(self.data.password, user.password):
+            return user
+        raise AuthError("Incorrect login or password")
+
+    async def authenticate(self):
+        user = await self._verify_user()
+        payload = TokenData(
+            login=user.login,
+            exp=datetime.now(timezone.utc)
+            + timedelta(minutes=crypt_settings.ACCESS_TOKEN_EXPIRE_MINUTES),
+            role=user.role,
+        )
+        return TokenManager.generate_token(payload)

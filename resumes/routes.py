@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, HTTPException, Query
 from resumes.crud import ResumeProcessor
-from core.dependencies import SessionDep
+from core.dependencies import SessionDep, AdminRequieredDep
 from resumes.schemas import (
     ResumePostSchema,
     ResumeGetSchemaWithWorker,
@@ -36,8 +36,12 @@ async def get_resumes(
     ] = None,
 ):
     filters = FilterCollection(
-        LikeFilter("about_me", Resume, keywords.keyword),
-        RangeFilter("salary_expectations", Resume, salary.min, salary.max),
+        LikeFilter("about_me", Resume, keywords.keyword if keywords else None),
+        RangeFilter(
+            "salary_expectations",
+            Resume,
+            *(salary.min, salary.max) if salary else (None,),
+        ),
         EqualFilter("education", Resume, education),
         EqualFilter("educational_status", Resume, education_status),
         LikeFilter("educational_institute", Resume, educational_institute),
@@ -55,7 +59,7 @@ async def post_resume(session: SessionDep, data: ResumePostSchema):
 
 
 @router.delete("/{resume_id}", summary="Удалить резюме работника из БД")
-async def delete_resume(session: SessionDep, resume_id: int):
+async def delete_resume(session: SessionDep, resume_id: int, check: AdminRequieredDep):
     await ResumeProcessor.delete_resume_from_db(session, resume_id)
     return {"success": True}
 

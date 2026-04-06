@@ -6,7 +6,7 @@ from core.enums import Role
 
 class User(BaseWithTime):
     username: Mapped[str] = mapped_column(nullable=False)
-    login: Mapped[str] = mapped_column(nullable=False, unique=True)
+    login: Mapped[str] = mapped_column(nullable=False, unique=True, index=True)
     password: Mapped[str] = mapped_column(nullable=False)
     email: Mapped[str] = mapped_column(nullable=True, unique=True)
     role: Mapped[Role] = mapped_column(

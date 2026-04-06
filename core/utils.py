@@ -178,3 +178,7 @@ class Hasher:
     @classmethod
     def hash_password(cls, password: str) -> str:
         return cls.hasher.hash(password)
+
+    @classmethod
+    def verify_password(cls, password, hash):
+        return cls.hasher.verify(password, hash)

@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: db_headhunter
+    restart: always
+    env_file: 
+      - .env
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: app_headhunter
+    depends_on:
+      - db
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=db
+    ports:
+      - "8000:5000"
+
+volumes:
+  postgres_data:
